@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+}
+
+group 'in.mcxiv'
+version '0.1'
+
+ArrayList<SourceSet> customSourceSets = []
+
+sourceSets {
+    collections {
+        customSourceSets.add(collections)
+    }
+    images {
+        customSourceSets.add(images)
+    }
+    io {
+        customSourceSets.add(io)
+    }
+    math {
+        customSourceSets.add(math)
+    }
+    mathGen {
+    }
+    miscellaneous {
+        customSourceSets.add(miscellaneous)
+    }
+    string {
+        customSourceSets.add(string)
+    }
+    test {
+        customSourceSets.forEach(s -> {
+            runtimeClasspath += s.output
+            compileClasspath += s.output
+        })
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task runAllThoseTasks {
+    customSourceSets.forEach(sourceSet -> {
+        def sourceSetName = sourceSet.name
+        tasks.register("generated_task_$sourceSetName", Jar) {
+            dependsOn(classes)
+            archiveClassifier.set(sourceSetName)
+            manifest.attributes.put('Implementation-Title', "$project.name:$sourceSetName")
+            manifest.attributes.put('Implementation-Version', project.version)
+            setArchivesBaseName("$project.name-$sourceSetName")
+            from sourceSet.allSource
+        }
+    })
+    tasks.forEach(t -> {
+        if (t.name.startsWith("generated_task_"))
+            dependsOn(t)
+    })
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
+    manifest.attributes.put('Implementation-Title', project.name + "math")
+    manifest.attributes.put('Implementation-Version', project.version)
+    setArchivesBaseName(project.getName())
+    from sourceSets.getByName('main').allSource
+}
+
+artifacts {
+    tasks.forEach(t -> {
+        if (t.name.startsWith("generated_task_"))
+            archives(t)
+    })
+}
