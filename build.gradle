@@ -43,11 +43,14 @@ sourceSets.forEach(set -> {
     }
 
     if (set.name.endsWith('Gen')) {
+        set.resources.srcDirs += set.java.srcDirs
         def jarRunTask = task("${set.name}GenJarRunner", type: JavaExec) {
             classpath = set.runtimeClasspath
             mainClass = 'in.mcxiv.math.gen.MainGenerator'
         }
-        classes.dependsOn(jarRunTask)
+
+        // running it via jitpack doesnt allow it to access/add/modify sources
+//        classes.dependsOn(jarRunTask)
     }
 })
 
