@@ -1,6 +1,5 @@
 package in.mcxiv.math.gen;
 
-import java.io.*;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,27 +8,6 @@ import java.util.stream.Stream;
 
 public class TypeReplacer {
 
-    private static final File input = new File("src\\mathGen\\java\\in\\mcxiv\\math\\gen\\MathBox.java").getAbsoluteFile();
-    private static final File ouput = new File("src\\math\\java\\in\\mcxiv\\math\\MathBox.java").getAbsoluteFile();
-
-    public static void main(String[] args) throws IOException {
-        TypeReplacer replacer = new TypeReplacer();
-        try (
-                FileReader __reader__ = new FileReader(input);
-                BufferedReader reader = new BufferedReader(__reader__);
-                FileWriter __writer__ = new FileWriter(ouput);
-                BufferedWriter writer = new BufferedWriter(__writer__);
-        ) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                replacer.evaluateLine(line);
-                String newLine = replacer.getCode();
-                if (newLine != null)
-                    writer.write(newLine + System.lineSeparator());
-            }
-        }
-    }
-
     interface Cache {
         void evaluateLine(String line);
     }
@@ -37,7 +15,7 @@ public class TypeReplacer {
     String buffer = null;
     Cache cache = null;
 
-    private void evaluateLine(String line) {
+    public void evaluateLine(String line) {
         if (cache != null) {
             cache.evaluateLine(line);
             return;
@@ -98,7 +76,7 @@ public class TypeReplacer {
         );
     }
 
-    private String getCode() {
+    public String getCode() {
         String buffer = this.buffer;
         this.buffer = null;
         return buffer;

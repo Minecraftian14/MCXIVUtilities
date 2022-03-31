@@ -4,19 +4,29 @@ import java.util.Random;
 
 public class MathBox {
 
+    public static float map(float val, float minVal, float maxVal, float minReq, float maxReq) {
+        return (val - minVal) / (maxVal - minVal) * (maxReq - minReq) + minReq;
+    }
+
+    public static double map(double val, double minVal, double maxVal, double minReq, double maxReq) {
+        return (val - minVal) / (maxVal - minVal) * (maxReq - minReq) + minReq;
+    }
+
+
+
+    public static float map01(float val, float min, float max) {
+        return (val - min) / (max - min);
+    }
+
+    public static double map01(double val, double min, double max) {
+        return (val - min) / (max - min);
+    }
+
+
+
     private static final class RandomNumberGeneratorHolder {
         static final Random randomNumberGenerator = new Random();
     }
-
-    public static float mapTo01(float val, float min, float max) {
-        return (val - min) / (max - min);
-    }
-
-    public static double mapTo01(double val, double min, double max) {
-        return (val - min) / (max - min);
-    }
-
-
 
     public static short random(short min, short max) {
         return (short) RandomNumberGeneratorHolder.randomNumberGenerator

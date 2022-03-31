@@ -41,6 +41,14 @@ sourceSets.forEach(set -> {
             testImplementation set.output
         }
     }
+
+    if (set.name.endsWith('Gen')) {
+        def jarRunTask = task("${set.name}GenJarRunner", type: JavaExec) {
+            classpath = set.runtimeClasspath
+            mainClass = 'in.mcxiv.math.gen.MainGenerator'
+        }
+        classes.dependsOn(jarRunTask)
+    }
 })
 
 repositories {
