@@ -5,6 +5,7 @@ group 'in.mcxiv'
 version '0.1'
 
 sourceSets {
+    args
     collections
     images
     io
