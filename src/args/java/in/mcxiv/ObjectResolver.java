@@ -4,6 +4,10 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.DoubleAdder;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BiFunction;
 
 @FunctionalInterface
@@ -28,9 +32,23 @@ public interface ObjectResolver extends BiFunction<Class, String, Object> {
         put(Double.class, (c, s) -> Double.parseDouble(s));
 
         put(String.class, (c, s) -> s);
+        put(StringBuilder.class, (c, s) -> new StringBuilder(s));
+        put(StringBuffer.class, (c, s) -> new StringBuffer(s));
 
         put(BigInteger.class, (c, s) -> new BigInteger(s));
         put(BigDecimal.class, (c, s) -> new BigDecimal(s));
+        put(AtomicInteger.class, (c, s) -> new AtomicInteger(Integer.parseInt(s)));
+        put(AtomicLong.class, (c, s) -> new AtomicLong(Long.parseLong(s)));
+        put(DoubleAdder.class, (c, s) -> {
+            DoubleAdder adder = new DoubleAdder();
+            adder.add(Double.parseDouble(s));
+            return adder;
+        });
+        put(LongAdder.class, (c, s) -> {
+            LongAdder adder = new LongAdder();
+            adder.add(Long.parseLong(s));
+            return adder;
+        });
 
         put(File.class, (c, s) -> new File(s));
     }};
