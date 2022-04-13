@@ -19,7 +19,8 @@ sourceSets.forEach(set -> {
     if (set.name != 'main' && set.name != 'test' && !set.name.endsWith('Gen')) {
         def jarTask = task("${set.name}Jar", type: Jar) {
             classifier("$set.name")
-            System.out.println(set.output)
+            getArchiveFile().get().asFile.absolutePath
+            System.out.println("output=" + getArchiveFile().get().asFile.absolutePath)
             from set.output
         }
 
