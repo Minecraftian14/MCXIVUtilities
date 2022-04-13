@@ -58,6 +58,25 @@ ArgsEvaler parser=new ArgsEvaler.ArgsEvalerBuilder()
         .build();
 ```
 
+### Adding Tagged Arguments
+
+To parse arguments which are followed by a tag/word before them we use tagged arguments. Note, the tag can be placed
+anywhere, and will parse the word right after it, so these arguments can also occur in any order.
+
+If the tags are defined as "-a", "-b" and "--cat":
+<br>
+Input arguments: `-b Hello -a World --cat !`
+<br>
+Referencing: `{-a="World", -b="Hello", --cat="!"}`
+
+```java
+ArgsEvaler parser=new ArgsEvaler.ArgsEvalerBuilder()
+        .addTagged("tag_a")
+        .addTagged("tag_b")
+        .addTagged("tag_b")
+        .build();
+```
+
 ### Parsing Arguments and Retrieving Values
 
 [//]: # (@formatter:off)
@@ -68,8 +87,14 @@ Object object = map.get("name_a");
 String string = (String) map.get("name_a");
 
 // Or get a Minimal Implementation of AbstractMap (which casts internally)
-var map = parser.parseToResultMap(args);
-int name = map.get("some_int_a");
+var res = parser.parseToResultMap(args);
+int num_a = res.get("some_int_a");
+int num_b = res.get("some_int_c", 1114);
+
+// Get an Optional which can be empty
+Optional<Object> opt_a = res.getOpt("some_int_a")
+// Get an Optional with a non-null value (default)
+Optional<Object> opt_c = res.getOpt("some_int_c", 1114)
 ```
 [//]: # (@formatter:on)
 

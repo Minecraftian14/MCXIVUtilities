@@ -34,9 +34,9 @@ public class Pair<A, B> {
     @Override
     public String toString() {
         return "Pair{" +
-                "a=" + a +
-                ",b=" + b +
-                '}';
+               "a=" + a +
+               ",b=" + b +
+               '}';
     }
 
     @Override

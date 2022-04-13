@@ -6,11 +6,6 @@ import java.util.regex.Pattern;
 
 public class ArgsEvaler {
 
-    public static final String SINGLE_DASH_IN_NOTHING = "";
-    public static final String SINGLE_DASH_IN_SHORT_NAMES = "";
-    public static final String SINGLE_DASH_IN_FULL_NAMES = "";
-    public static final String SINGLE_DASH_IN_ALL_NAMES = "";
-
     private static final Pattern rgx_pair = Pattern.compile("^([^ ]+)=([^ ]+)$");
 
     private final String[] indexedArgsNames;
@@ -199,7 +194,7 @@ public class ArgsEvaler {
         }
     }
 
-    public class ResultMap extends AbstractMap<String, Object> {
+    public static class ResultMap extends AbstractMap<String, Object> {
 
         private final HashMap<String, Object> map;
 
@@ -208,55 +203,30 @@ public class ArgsEvaler {
         }
 
         @SuppressWarnings("unchecked")
-        @Deprecated
         public <ReType> ReType get(String name) {
-            return (ReType) map.get(name);
+            Object o = map.get(name);
+            if (o == null) return null;
+            return (ReType) o;
         }
 
-        public <ReType> ReType get(String name, Class<ReType> def) {
-
+        public Optional<Object> getOpt(String name) {
+            return Optional.ofNullable(map.get(name));
         }
 
         @SuppressWarnings("unchecked")
         public <ReType> ReType get(String name, ReType def) {
             Object o = map.get(name);
             if (o == null) return def;
-
-            int x = indexOf(name, indexedArgsNames);
-
-            // Test this method and then implement optional
-            //
-
-            if (x != -1) {
-                if (indexedArgsClassTypes[x].isInstance(def))
-                    return ((Class<? extends ReType>) indexedArgsClassTypes[x]).cast(o);
-                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
+            try {
+                return (ReType) o;
+            } catch (Exception e) {
+                return def;
             }
-
-            x = indexOf(name, namedArgsNames);
-
-            if (x != -1) {
-                if (namedArgsClassTypes[x].isInstance(def))
-                    return ((Class<? extends ReType>) namedArgsClassTypes[x]).cast(o);
-                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
-            }
-
-            x = indexOf(name, taggedArgsNames);
-
-            if (x != -1) {
-                if (taggedArgsClassTypes[x].isInstance(def))
-                    return ((Class<? extends ReType>) taggedArgsClassTypes[x]).cast(o);
-                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
-            }
-
-            return def;
         }
 
-        private static int indexOf(String value, String[] array) {
-            for (int i = 0; i < array.length; i++)
-                if (Objects.equals(value, array[i]))
-                    return i;
-            return -1;
+        public Optional<Object> getOpt(String name, Object def) {
+            Object o = map.get(name);
+            return Optional.of(o != null ? o : def);
         }
 
         @Override

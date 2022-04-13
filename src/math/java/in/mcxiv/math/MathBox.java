@@ -13,7 +13,6 @@ public class MathBox {
     }
 
 
-
     public static float map01(float val, float min, float max) {
         return (val - min) / (max - min);
     }
@@ -21,7 +20,6 @@ public class MathBox {
     public static double map01(double val, double min, double max) {
         return (val - min) / (max - min);
     }
-
 
 
     private static final class RandomNumberGeneratorHolder {
@@ -55,7 +53,6 @@ public class MathBox {
     }
 
 
-
     public static int random(int max) {
         return RandomNumberGeneratorHolder.randomNumberGenerator.nextInt(max);
     }
@@ -71,7 +68,6 @@ public class MathBox {
     public static double random(double max) {
         return RandomNumberGeneratorHolder.randomNumberGenerator.nextDouble(max);
     }
-
 
 
     public static int randomInt() {

@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Optional;
 
 class ArgsEvalerTest {
 
@@ -51,7 +52,26 @@ class ArgsEvalerTest {
         System.out.println(((File) map.get("path")).getAbsolutePath());
 
         ArgsEvaler.ResultMap resultMap = parser.parseToResultMap("ooof", "ooof", "1114");
+
         int name = resultMap.get("some_int_a");
         Assertions.assertEquals(1114, name);
+
+        name = resultMap.get("some_int_c", 1114);
+        Assertions.assertEquals(1114, name);
+
+        Optional<Object> some_int_a = resultMap.getOpt("some_int_a");
+
+        resultMap.getOpt("some_int_a")
+                .map(o -> (int) o)
+                .ifPresentOrElse(System.out::println, Assertions::fail);
+
+        resultMap.getOpt("some_int_c")
+                .map(o -> (int) o)
+                .ifPresent(integer -> Assertions.fail());
+
+        resultMap.getOpt("some_int_a", 1114)
+                .map(o -> (int) o)
+                .ifPresentOrElse(System.out::println, Assertions::fail);
+
     }
 }
