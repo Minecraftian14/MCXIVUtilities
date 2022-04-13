@@ -19,6 +19,7 @@ sourceSets.forEach(set -> {
     if (set.name != 'main' && set.name != 'test' && !set.name.endsWith('Gen')) {
         def jarTask = task("${set.name}Jar", type: Jar) {
             classifier("$set.name")
+            System.out.println(set.output)
             from set.output
         }
 
