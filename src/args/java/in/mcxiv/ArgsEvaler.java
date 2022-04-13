@@ -54,7 +54,7 @@ public class ArgsEvaler {
     }
 
     public void addResolver(Class clazz, ObjectResolver objectResolver) {
-        adjustResolverFor(indexedArgsNames, taggedArgsClassTypes, indexedArgsClassTypesResolvers, clazz, objectResolver);
+        adjustResolverFor(indexedArgsNames, indexedArgsClassTypes, indexedArgsClassTypesResolvers, clazz, objectResolver);
         adjustResolverFor(taggedArgsNames, taggedArgsClassTypes, taggedArgsClassTypesResolvers, clazz, objectResolver);
         adjustResolverFor(namedArgsNames, namedArgsClassTypes, namedArgsClassTypesResolvers, clazz, objectResolver);
     }
