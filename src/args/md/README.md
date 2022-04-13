@@ -6,7 +6,7 @@ Parse the arguments received in an application to a Map object.
 
 ```groovy
 dependencies {
-    implementation 'in.mcxiv.MCXIVUtilities:args:51d98e57ff:args'
+    implementation 'in.mcxiv.MCXIVUtilities:args:3017bf08ba:args'
 }
 ```
 
