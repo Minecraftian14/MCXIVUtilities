@@ -16,7 +16,7 @@ class ArgsEvalerTest {
     }
 
     @Test
-    void testIndexedArgs() {
+    void testArgsEvaler() {
         ArgsEvaler parser = new ArgsEvaler.ArgsEvalerBuilder()
                 .addIndexed("name_a")
                 .addIndexed("name_b")
@@ -26,21 +26,24 @@ class ArgsEvalerTest {
                 .addNamed("value")
                 .addNamed("path", File.class)
                 .addNamed("bytes", ByteBuffer.class)
+                .addTagged("--tag")
                 .addResolver(ByteBuffer.class, (c, s) -> ByteBuffer.wrap(s.getBytes()))
                 .build();
 
-        HashMap<String, Object> map = parser.parse("path=this/lol", "hello", "world", "bytes=someBytes", "135", "67.0", "123456787654321", "value=something");
+        HashMap<String, Object> map = parser.parse("path=this/lol", "hello", "world", "bytes=someBytes", "135", "--tag", "a tagged value", "67.0", "123456787654321", "value=something");
 
         Assertions.assertEquals("hello", map.get("name_a"));
         Assertions.assertEquals("world", map.get("name_b"));
         Assertions.assertEquals(135, map.get("some_int_a"));
         Assertions.assertEquals(67f, map.get("some_float_a"));
         Assertions.assertEquals(new BigInteger("123456787654321"), map.get("big_int"));
+
         Assertions.assertEquals("something", map.get("value"));
         Assertions.assertEquals(new File("this/lol"), map.get("path"));
-
         Assertions.assertTrue(map.get("bytes") instanceof ByteBuffer);
         Assertions.assertEquals(9, ((ByteBuffer) map.get("bytes")).array().length);
+
+        Assertions.assertEquals("a tagged value", map.get("--tag"));
 
         System.out.println(map);
 

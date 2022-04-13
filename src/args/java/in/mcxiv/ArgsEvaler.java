@@ -21,30 +21,41 @@ public class ArgsEvaler {
     private final Class<?>[] namedArgsClassTypes;
     private final ObjectResolver[] namedArgsClassTypesResolvers;
 
-    public ArgsEvaler(String[] indexedArgsNames, Class<?>[] indexedArgsClassTypes, String[] namedArgsNames, Class<?>[] namedArgsClassTypes) {
+    private final String[] taggedArgsNames;
+    private final Class<?>[] taggedArgsClassTypes;
+    private final ObjectResolver[] taggedArgsClassTypesResolvers;
+
+    public ArgsEvaler(String[] indexedArgsNames, Class<?>[] indexedArgsClassTypes,
+                      String[] namedArgsNames, Class<?>[] namedArgsClassTypes,
+                      String[] taggedArgsNames, Class<?>[] taggedArgsClassTypes) {
+
         if (indexedArgsNames.length != indexedArgsClassTypes.length)
             throw new IllegalArgumentException("The number of indexed argument names provided must match the number of class types given.");
         if (namedArgsNames.length != namedArgsClassTypes.length)
             throw new IllegalArgumentException("The number of named argument names provided must match the number of class types given.");
+        if (taggedArgsNames.length != taggedArgsClassTypes.length)
+            throw new IllegalArgumentException("The number of tagged argument names provided must match the number of class types given.");
 
         this.indexedArgsNames = indexedArgsNames;
         this.indexedArgsClassTypes = indexedArgsClassTypes;
         this.namedArgsNames = namedArgsNames;
         this.namedArgsClassTypes = namedArgsClassTypes;
+        this.taggedArgsNames = taggedArgsNames;
+        this.taggedArgsClassTypes = taggedArgsClassTypes;
 
-        this.indexedArgsClassTypesResolvers = new ObjectResolver[this.indexedArgsClassTypes.length];
-        for (int i = 0, s = this.indexedArgsClassTypes.length; i < s; i++) {
-            this.indexedArgsClassTypesResolvers[i]
-                    = ObjectResolver.DEFAULT_RESOLVERS
-                    .get(this.indexedArgsClassTypes[i]);
-        }
+        this.indexedArgsClassTypesResolvers = makeArgsClassTypesResolvers(this.indexedArgsClassTypes);
+        this.namedArgsClassTypesResolvers = makeArgsClassTypesResolvers(this.namedArgsClassTypes);
+        this.taggedArgsClassTypesResolvers = makeArgsClassTypesResolvers(this.taggedArgsClassTypes);
+    }
 
-        this.namedArgsClassTypesResolvers = new ObjectResolver[this.namedArgsClassTypes.length];
-        for (int i = 0, s = this.namedArgsClassTypes.length; i < s; i++) {
-            this.namedArgsClassTypesResolvers[i]
+    private static ObjectResolver[] makeArgsClassTypesResolvers(Class[] argsClassTypes) {
+        ObjectResolver[] argsClassTypesResolvers = new ObjectResolver[argsClassTypes.length];
+        for (int i = 0, s = argsClassTypes.length; i < s; i++) {
+            argsClassTypesResolvers[i]
                     = ObjectResolver.DEFAULT_RESOLVERS
-                    .get(this.namedArgsClassTypes[i]);
+                    .get(argsClassTypes[i]);
         }
+        return argsClassTypesResolvers;
     }
 
     private void addResolver(Class clazz, ObjectResolver objectResolver) {
@@ -65,24 +76,49 @@ public class ArgsEvaler {
     public HashMap<String, Object> parse(List<String> args) {
         HashMap<String, Object> map = new HashMap<>();
 
+        for (int taggedArgsIdx = 0, taggedArgsS = taggedArgsNames.length; taggedArgsIdx < taggedArgsS; taggedArgsIdx++) {
+            String name = taggedArgsNames[taggedArgsIdx];
+
+            for (int argsIdx = 0, argsS = args.size() - 1; argsIdx < argsS; argsIdx++) {
+
+                String arg = args.get(argsIdx);
+
+                if (Objects.equals(name, arg)) {
+                    map.put(
+                            name, taggedArgsClassTypesResolvers[taggedArgsIdx]
+                                    .objectify(taggedArgsClassTypes[taggedArgsIdx], args.get(argsIdx + 1))
+                    );
+
+                    args.remove(argsIdx);
+                    args.remove(argsIdx);
+
+                    break;
+                }
+            }
+        }
+
         for (int namedArgsIdx = 0, namedArgsS = namedArgsNames.length; namedArgsIdx < namedArgsS; namedArgsIdx++) {
+            String name = namedArgsNames[namedArgsIdx];
+
             for (int argsIdx = 0, argsS = args.size(); argsIdx < argsS; argsIdx++) {
 
                 String arg = args.get(argsIdx);
-                String name = namedArgsNames[namedArgsIdx];
 
                 if (arg.indexOf('=') != -1 && arg.startsWith(name)) {
 
                     Matcher matcher = rgx_pair.matcher(arg);
                     if (!matcher.matches() || !matcher.group(1).equals(name)) continue;
 
-                    args.remove(argsIdx--);
-                    argsS--;
+                    args.remove(argsIdx);
+//                    args.remove(argsIdx--);
+//                    argsS--;
 
                     map.put(
                             name, namedArgsClassTypesResolvers[namedArgsIdx]
                                     .objectify(namedArgsClassTypes[namedArgsIdx], matcher.group(2))
                     );
+
+                    break;
                 }
             }
         }
@@ -110,6 +146,9 @@ public class ArgsEvaler {
         private final List<String> namedArgsNames = new ArrayList<>();
         private final List<Class<?>> namedArgsClassTypes = new ArrayList<>();
 
+        private final List<String> taggedArgsNames = new ArrayList<>();
+        private final List<Class<?>> taggedArgsClassTypes = new ArrayList<>();
+
         private final HashMap<Class, ObjectResolver> objectResolvers = new HashMap<>();
 
         public ArgsEvalerBuilder addIndexed(String name) {
@@ -132,6 +171,16 @@ public class ArgsEvaler {
             return this;
         }
 
+        public ArgsEvalerBuilder addTagged(String name) {
+            return addTagged(name, String.class);
+        }
+
+        public ArgsEvalerBuilder addTagged(String name, Class<?> clazz) {
+            taggedArgsNames.add(name);
+            taggedArgsClassTypes.add(clazz);
+            return this;
+        }
+
         public ArgsEvalerBuilder addResolver(Class clazz, ObjectResolver objectResolver) {
             objectResolvers.put(clazz, objectResolver);
             return this;
@@ -142,8 +191,9 @@ public class ArgsEvaler {
                     indexedArgsNames.toArray(String[]::new),
                     indexedArgsClassTypes.toArray(Class[]::new),
                     namedArgsNames.toArray(String[]::new),
-                    namedArgsClassTypes.toArray(Class[]::new)
-            );
+                    namedArgsClassTypes.toArray(Class[]::new),
+                    taggedArgsNames.toArray(String[]::new),
+                    taggedArgsClassTypes.toArray(Class[]::new));
             objectResolvers.forEach(argsEvaler::addResolver);
             return argsEvaler;
         }
@@ -158,8 +208,55 @@ public class ArgsEvaler {
         }
 
         @SuppressWarnings("unchecked")
+        @Deprecated
         public <ReType> ReType get(String name) {
             return (ReType) map.get(name);
+        }
+
+        public <ReType> ReType get(String name, Class<ReType> def) {
+
+        }
+
+        @SuppressWarnings("unchecked")
+        public <ReType> ReType get(String name, ReType def) {
+            Object o = map.get(name);
+            if (o == null) return def;
+
+            int x = indexOf(name, indexedArgsNames);
+
+            // Test this method and then implement optional
+            //
+
+            if (x != -1) {
+                if (indexedArgsClassTypes[x].isInstance(def))
+                    return ((Class<? extends ReType>) indexedArgsClassTypes[x]).cast(o);
+                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
+            }
+
+            x = indexOf(name, namedArgsNames);
+
+            if (x != -1) {
+                if (namedArgsClassTypes[x].isInstance(def))
+                    return ((Class<? extends ReType>) namedArgsClassTypes[x]).cast(o);
+                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
+            }
+
+            x = indexOf(name, taggedArgsNames);
+
+            if (x != -1) {
+                if (taggedArgsClassTypes[x].isInstance(def))
+                    return ((Class<? extends ReType>) taggedArgsClassTypes[x]).cast(o);
+                else throw new ClassCastException(o.getClass() + " can not be cast to the required type.");
+            }
+
+            return def;
+        }
+
+        private static int indexOf(String value, String[] array) {
+            for (int i = 0; i < array.length; i++)
+                if (Objects.equals(value, array[i]))
+                    return i;
+            return -1;
         }
 
         @Override
