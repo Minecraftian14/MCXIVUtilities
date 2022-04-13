@@ -1,3 +1,5 @@
+import javax.swing.Spring
+
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
@@ -19,8 +21,13 @@ sourceSets.forEach(set -> {
     if (set.name != 'main' && set.name != 'test' && !set.name.endsWith('Gen')) {
         def jarTask = task("${set.name}Jar", type: Jar) {
             classifier("$set.name")
-            getArchiveFile().get().asFile.absolutePath
-            System.out.println("output=" + getArchiveFile().get().asFile.absolutePath)
+
+            destinationDirectory.set(file(archiveFileName.get()))
+//            getDestinationDirectory().set(file(""))
+//            System.out.println(archiveFileName.get())
+
+
+            System.out.println("output=" + getDestinationDirectory().get().asFile.absolutePath)
             from set.output
         }
 
