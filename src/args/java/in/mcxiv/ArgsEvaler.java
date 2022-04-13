@@ -53,13 +53,16 @@ public class ArgsEvaler {
         return argsClassTypesResolvers;
     }
 
-    private void addResolver(Class clazz, ObjectResolver objectResolver) {
-        for (int i = 0; i < indexedArgsNames.length; i++)
-            if (Objects.equals(indexedArgsClassTypes[i], clazz))
-                indexedArgsClassTypesResolvers[i] = objectResolver;
-        for (int i = 0; i < namedArgsNames.length; i++)
-            if (Objects.equals(namedArgsClassTypes[i], clazz))
-                namedArgsClassTypesResolvers[i] = objectResolver;
+    public void addResolver(Class clazz, ObjectResolver objectResolver) {
+        adjustResolverFor(indexedArgsNames, taggedArgsClassTypes, indexedArgsClassTypesResolvers, clazz, objectResolver);
+        adjustResolverFor(taggedArgsNames, taggedArgsClassTypes, taggedArgsClassTypesResolvers, clazz, objectResolver);
+        adjustResolverFor(namedArgsNames, namedArgsClassTypes, namedArgsClassTypesResolvers, clazz, objectResolver);
+    }
+
+    private static void adjustResolverFor(String[] argsNames, Class<?>[] argsClassTypes, ObjectResolver[] argsClassTypesResolvers, Class clazz, ObjectResolver objectResolver) {
+        for (int i = 0; i < argsNames.length; i++)
+            if (Objects.equals(argsClassTypes[i], clazz))
+                argsClassTypesResolvers[i] = objectResolver;
     }
 
     public HashMap<String, Object> parse(String... args) {
